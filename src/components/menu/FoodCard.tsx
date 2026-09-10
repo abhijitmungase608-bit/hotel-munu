@@ -131,6 +131,10 @@ export const FoodCard: React.FC<FoodCardProps> = ({ item, onOpenDetails }) => {
         <img
           src={item.image}
           alt={item.name}
+          onError={(e) => {
+            (e.target as HTMLImageElement).src =
+              'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80';
+          }}
           className={`w-full h-full object-cover transition-transform duration-300 ${
             item.isAvailable ? 'hover:scale-105' : 'grayscale'
           }`}
