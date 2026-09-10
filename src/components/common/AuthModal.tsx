@@ -5,16 +5,18 @@ import { X, Utensils, Shield, Check, Sparkles } from 'lucide-react';
 export const AuthModal: React.FC = () => {
   const { isAuthModalOpen, setIsAuthModalOpen, loginAs, showToast } = useApp();
   const [isRegister, setIsRegister] = useState(false);
+  const [restaurantName, setRestaurantName] = useState('');
+  const [ownerName, setOwnerName] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [restaurantName, setRestaurantName] = useState('');
 
   if (!isAuthModalOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isRegister) {
-      showToast('Registration Successful!', `Welcome ${restaurantName || 'Owner'}! Your digital menu is ready.`, 'success');
+      showToast('Registration Successful!', `Welcome ${ownerName || 'Owner'}! Your digital menu for ${restaurantName || 'Hotel Munu'} is ready.`, 'success');
       loginAs('OWNER', 'rest-1');
     } else {
       if (email.includes('admin')) {
@@ -27,7 +29,7 @@ export const AuthModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-100 overflow-hidden relative">
+      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden relative">
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-6 text-white relative">
           <button
@@ -38,33 +40,33 @@ export const AuthModal: React.FC = () => {
           </button>
           <div className="flex items-center gap-2 mb-2">
             <span className="text-2xl">🍕</span>
-            <span className="font-extrabold tracking-tight text-xl">MenuCard</span>
+            <span className="font-black tracking-tight text-2xl">Munu.</span>
           </div>
-          <h3 className="text-2xl font-bold">
-            {isRegister ? 'Create Your Digital Menu' : 'Welcome Back'}
+          <h3 className="text-xl font-black">
+            {isRegister ? 'Create Your Restaurant Menu' : 'Welcome Back to Munu'}
           </h3>
-          <p className="text-orange-100 text-sm mt-1">
+          <p className="text-orange-100 text-xs mt-1">
             {isRegister
-              ? 'Join 1,200+ restaurants transforming dining with QR menus'
-              : 'Sign in to access your kitchen orders and menu dashboard'}
+              ? 'Start serving diners with a modern contactless QR menu in 5 minutes'
+              : 'Sign in to access your kitchen live orders and menu management'}
           </p>
         </div>
 
         <div className="p-6">
           {/* Quick Demo Access Bar */}
-          <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 uppercase tracking-wider mb-2">
+          <div className="mb-5 p-3 bg-amber-50 border border-amber-200 rounded-2xl">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-800 uppercase tracking-wider mb-2">
               <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              1-Click Demo Quick Login
+              1-Click Instant Demo Login
             </div>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => loginAs('OWNER', 'rest-1')}
-                className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-orange-50 border border-orange-200 rounded-lg text-xs font-semibold text-slate-800 shadow-sm transition hover:border-orange-400"
+                className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-orange-50 border border-orange-200 rounded-xl text-xs font-semibold text-slate-800 shadow-sm transition hover:border-orange-400"
               >
                 <Utensils className="w-3.5 h-3.5 text-orange-600" />
-                Restaurant Owner
+                Hotel Munu Owner
               </button>
               <button
                 type="button"
@@ -78,21 +80,51 @@ export const AuthModal: React.FC = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             {isRegister && (
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Restaurant / Cafe Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Bella Italia Bistro"
-                  value={restaurantName}
-                  onChange={(e) => setRestaurantName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                />
-              </div>
+              <>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Restaurant Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Hotel Munu"
+                    value={restaurantName}
+                    onChange={(e) => setRestaurantName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Owner Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Abhijit Mungase"
+                    value={ownerName}
+                    onChange={(e) => setOwnerName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="e.g. 9876543210"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  />
+                </div>
+              </>
             )}
 
             <div>
@@ -102,10 +134,10 @@ export const AuthModal: React.FC = () => {
               <input
                 type="email"
                 required
-                placeholder="owner@restaurant.com"
+                placeholder="owner@hotelmunu.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
               />
             </div>
 
@@ -119,20 +151,20 @@ export const AuthModal: React.FC = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition flex items-center justify-center gap-2"
+              className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs rounded-xl shadow-lg shadow-orange-500/20 transition flex items-center justify-center gap-2 mt-2"
             >
               <Check className="w-4 h-4" />
-              {isRegister ? 'Create Restaurant Account' : 'Sign In to Dashboard'}
+              {isRegister ? 'Create Account' : 'Sign In to Dashboard'}
             </button>
           </form>
 
-          <div className="mt-4 pt-4 border-t border-slate-100 text-center">
+          <div className="mt-4 pt-3 border-t border-slate-100 text-center">
             <button
               type="button"
               onClick={() => setIsRegister(!isRegister)}

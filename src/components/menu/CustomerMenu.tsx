@@ -116,9 +116,9 @@ export const CustomerMenu: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="text-base">🔥</span>
             <div>
-              <span className="font-bold">Today's Special:</span> 20% OFF on all pizzas! Use code{' '}
+              <span className="font-bold">Today's Special:</span> 20% OFF on dining bills! Use code{' '}
               <span className="font-black bg-white/20 px-1.5 py-0.5 rounded tracking-wider">
-                PIZZA20
+                MUNU20
               </span>
             </div>
           </div>

@@ -137,7 +137,7 @@ export const DashboardLayout: React.FC = () => {
           <div className="p-5 border-b border-slate-800">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-2xl">🍕</span>
-              <span className="font-black text-lg tracking-tight text-white">MenuCard</span>
+              <span className="font-black text-xl tracking-tight text-white">Munu.</span>
               <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 text-[10px] font-bold rounded">
                 OWNER
               </span>
