@@ -116,7 +116,7 @@ const SYNC_CHANNEL_NAME = 'menucard_realtime_sync';
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Navigation
   const [currentView, setCurrentView] = useState<'landing' | 'menu' | 'dashboard' | 'admin'>('landing');
-  const [activeRestaurantSlug, setActiveRestaurantSlug] = useState<string>('abc-cafe');
+  const [activeRestaurantSlug, setActiveRestaurantSlug] = useState<string>('hotel-munu');
   const [selectedTableNumber, setSelectedTableNumber] = useState<string>('4');
   const [dashboardTab, setDashboardTab] = useState<string>('orders');
   const [adminTab, setAdminTab] = useState<string>('restaurants');
@@ -140,34 +140,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Data from LocalStorage or Defaults
+  // Data from LocalStorage (munu_v4_) or Defaults
   const [restaurants, setRestaurants] = useState<Restaurant[]>(() => {
-    const saved = localStorage.getItem('menucard_restaurants');
+    const saved = localStorage.getItem('munu_v4_restaurants');
     return saved ? JSON.parse(saved) : initialRestaurants;
   });
 
   const [categories, setCategories] = useState<Category[]>(() => {
-    const saved = localStorage.getItem('menucard_categories');
+    const saved = localStorage.getItem('munu_v4_categories');
     return saved ? JSON.parse(saved) : initialCategories;
   });
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
-    const saved = localStorage.getItem('menucard_menu_items');
+    const saved = localStorage.getItem('munu_v4_menu_items');
     return saved ? JSON.parse(saved) : initialMenuItems;
   });
 
   const [tables, setTables] = useState<Table[]>(() => {
-    const saved = localStorage.getItem('menucard_tables');
+    const saved = localStorage.getItem('munu_v4_tables');
     return saved ? JSON.parse(saved) : initialTables;
   });
 
   const [orders, setOrders] = useState<Order[]>(() => {
-    const saved = localStorage.getItem('menucard_orders');
+    const saved = localStorage.getItem('munu_v4_orders');
     return saved ? JSON.parse(saved) : initialOrders;
   });
 
   const [coupons, setCoupons] = useState<Coupon[]>(() => {
-    const saved = localStorage.getItem('menucard_coupons');
+    const saved = localStorage.getItem('munu_v4_coupons');
     return saved ? JSON.parse(saved) : initialCoupons;
   });
 
@@ -179,27 +179,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Save changes to localStorage
   useEffect(() => {
-    localStorage.setItem('menucard_restaurants', JSON.stringify(restaurants));
+    localStorage.setItem('munu_v4_restaurants', JSON.stringify(restaurants));
   }, [restaurants]);
 
   useEffect(() => {
-    localStorage.setItem('menucard_categories', JSON.stringify(categories));
+    localStorage.setItem('munu_v4_categories', JSON.stringify(categories));
   }, [categories]);
 
   useEffect(() => {
-    localStorage.setItem('menucard_menu_items', JSON.stringify(menuItems));
+    localStorage.setItem('munu_v4_menu_items', JSON.stringify(menuItems));
   }, [menuItems]);
 
   useEffect(() => {
-    localStorage.setItem('menucard_tables', JSON.stringify(tables));
+    localStorage.setItem('munu_v4_tables', JSON.stringify(tables));
   }, [tables]);
 
   useEffect(() => {
-    localStorage.setItem('menucard_orders', JSON.stringify(orders));
+    localStorage.setItem('munu_v4_orders', JSON.stringify(orders));
   }, [orders]);
 
   useEffect(() => {
-    localStorage.setItem('menucard_coupons', JSON.stringify(coupons));
+    localStorage.setItem('munu_v4_coupons', JSON.stringify(coupons));
   }, [coupons]);
 
   // Handle URL hash or query params if any

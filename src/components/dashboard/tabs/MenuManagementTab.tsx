@@ -138,44 +138,46 @@ export const MenuManagementTab: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Tab Switcher & Action buttons */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveSubTab('items')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
               activeSubTab === 'items'
                 ? 'bg-orange-500 text-white shadow-sm shadow-orange-500/30'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
-            Food Items ({restaurantItems.length})
+            <span>🍲</span>
+            <span>Food Items ({restaurantItems.length})</span>
           </button>
           <button
             onClick={() => setActiveSubTab('categories')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
               activeSubTab === 'categories'
                 ? 'bg-orange-500 text-white shadow-sm shadow-orange-500/30'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
-            Categories ({restaurantCategories.length})
+            <span>📁</span>
+            <span>Categories ({restaurantCategories.length})</span>
           </button>
         </div>
 
         {activeSubTab === 'items' ? (
           <button
             onClick={handleOpenNewItem}
-            className="px-4 py-2.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5"
+            className="w-full sm:w-auto px-4 py-2.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl shadow transition flex items-center justify-center gap-2 active:scale-95"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-orange-400" />
             <span>Add Food Item</span>
           </button>
         ) : (
           <button
             onClick={() => setIsCatModalOpen(true)}
-            className="px-4 py-2.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5"
+            className="w-full sm:w-auto px-4 py-2.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl shadow transition flex items-center justify-center gap-2 active:scale-95"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-orange-400" />
             <span>Create Category</span>
           </button>
         )}
@@ -188,9 +190,9 @@ export const MenuManagementTab: React.FC = () => {
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
             <button
               onClick={() => setSelectedCategoryFilter('ALL')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${
                 selectedCategoryFilter === 'ALL'
-                  ? 'bg-slate-900 text-white'
+                  ? 'bg-slate-900 text-white shadow-sm'
                   : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -200,9 +202,9 @@ export const MenuManagementTab: React.FC = () => {
               <button
                 key={c.id}
                 onClick={() => setSelectedCategoryFilter(c.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition flex items-center gap-1 ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5 ${
                   selectedCategoryFilter === c.id
-                    ? 'bg-slate-900 text-white'
+                    ? 'bg-slate-900 text-white shadow-sm'
                     : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
                 }`}
               >
@@ -212,8 +214,93 @@ export const MenuManagementTab: React.FC = () => {
             ))}
           </div>
 
-          {/* Items Table / Cards */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          {/* Mobile App Cards View (Visible on Mobile screens) */}
+          <div className="md:hidden space-y-3">
+            {filteredItems.map((item) => {
+              const cat = restaurantCategories.find((c) => c.id === item.categoryId);
+              return (
+                <div
+                  key={`mob-${item.id}`}
+                  className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3"
+                >
+                  <div className="flex gap-3">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80';
+                      }}
+                      className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-1">
+                        <h4 className="font-bold text-slate-900 text-sm truncate">{item.name}</h4>
+                        <span
+                          className={`w-3.5 h-3.5 rounded-sm border-2 flex items-center justify-center shrink-0 mt-0.5 ${
+                            item.vegType === 'veg' ? 'border-emerald-600' : 'border-rose-600'
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              item.vegType === 'veg' ? 'bg-emerald-600' : 'bg-rose-600'
+                            }`}
+                          ></span>
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-500 truncate mt-0.5">
+                        {cat ? `${cat.icon} ${cat.name}` : 'General'}
+                      </div>
+                      <div className="flex items-baseline gap-1.5 mt-1 font-bold text-sm text-slate-900">
+                        <span>₹{item.discountPrice !== undefined ? item.discountPrice : item.price}</span>
+                        {item.discountPrice !== undefined && (
+                          <span className="text-xs text-slate-400 line-through">₹{item.price}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <button
+                      onClick={() => toggleItemAvailability(item.id)}
+                      className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition active:scale-95 ${
+                        item.isAvailable
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-rose-100 text-rose-800'
+                      }`}
+                    >
+                      <span
+                        className={`w-2 h-2 rounded-full ${
+                          item.isAvailable ? 'bg-emerald-600 animate-pulse' : 'bg-rose-600'
+                        }`}
+                      ></span>
+                      <span>{item.isAvailable ? 'Available 🟢' : 'Sold Out 🔴'}</span>
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenEditItem(item)}
+                        className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition"
+                        title="Edit Item"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteMenuItem(item.id)}
+                        className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition"
+                        title="Delete Item"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop Table View (Visible on Medium+ screens) */}
+          <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-bold">
@@ -222,9 +309,7 @@ export const MenuManagementTab: React.FC = () => {
                     <th className="py-3.5 px-4">Category</th>
                     <th className="py-3.5 px-4">Price</th>
                     <th className="py-3.5 px-4">Type</th>
-                    <th className="py-3.5 px-4">
-                      Live Availability (1-Click)
-                    </th>
+                    <th className="py-3.5 px-4">Live Availability (1-Click)</th>
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -239,6 +324,10 @@ export const MenuManagementTab: React.FC = () => {
                             <img
                               src={item.image}
                               alt={item.name}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80';
+                              }}
                               className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
                             />
                             <div className="min-w-0">
@@ -296,7 +385,7 @@ export const MenuManagementTab: React.FC = () => {
                         <td className="py-3 px-4">
                           <button
                             onClick={() => toggleItemAvailability(item.id)}
-                            className={`px-3 py-1.5 rounded-full font-bold text-xs flex items-center gap-1.5 transition ${
+                            className={`px-3 py-1.5 rounded-full font-bold text-xs flex items-center gap-1.5 transition active:scale-95 ${
                               item.isAvailable
                                 ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
                                 : 'bg-rose-100 text-rose-800 hover:bg-rose-200'

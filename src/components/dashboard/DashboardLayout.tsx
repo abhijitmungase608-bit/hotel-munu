@@ -86,17 +86,26 @@ export const DashboardLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col md:flex-row text-slate-900 pb-20 md:pb-0">
       {/* Mobile Top Header */}
-      <header className="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-30 shadow-sm no-print">
-        <div className="flex items-center gap-2">
+      <header className="md:hidden bg-white/95 backdrop-blur-md border-b border-slate-200 px-3.5 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-xs no-print">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
-            className="p-1.5 text-slate-600 rounded-lg hover:bg-slate-100"
+            className="p-2 text-slate-700 rounded-xl hover:bg-slate-100 active:scale-95 transition"
+            aria-label="Toggle menu"
           >
-            {isMobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isMobileNavOpen ? <X className="w-5 h-5 text-slate-900" /> : <Menu className="w-5 h-5 text-slate-900" />}
           </button>
           <div className="flex items-center gap-2">
-            <span className="text-xl">🍕</span>
-            <span className="font-extrabold text-slate-900 text-sm truncate max-w-[160px]">
+            <img
+              src={currentRestaurant.branding.logo}
+              alt={currentRestaurant.name}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=80';
+              }}
+              className="w-7 h-7 rounded-lg object-cover border border-slate-200"
+            />
+            <span className="font-black text-slate-900 text-sm truncate max-w-[140px]">
               {currentRestaurant.name}
             </span>
           </div>
@@ -109,7 +118,7 @@ export const DashboardLayout: React.FC = () => {
                 setDashboardTab('orders');
                 setIsMobileNavOpen(false);
               }}
-              className="px-2.5 py-1 bg-rose-500 text-white rounded-full text-xs font-bold flex items-center gap-1 animate-pulse"
+              className="px-2.5 py-1 bg-rose-500 text-white rounded-full text-xs font-black flex items-center gap-1 shadow-sm animate-pulse active:scale-95 transition"
             >
               <Bell className="w-3.5 h-3.5" />
               <span>{pendingOrdersCount}</span>
@@ -118,10 +127,11 @@ export const DashboardLayout: React.FC = () => {
 
           <button
             onClick={() => setCurrentView('menu')}
-            className="p-1.5 text-orange-600 hover:bg-orange-50 rounded-lg"
-            title="Preview Menu"
+            className="px-2.5 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 text-xs font-bold rounded-xl flex items-center gap-1.5 active:scale-95 transition"
+            title="Open Live Customer Menu"
           >
-            <ExternalLink className="w-5 h-5" />
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Menu</span>
           </button>
         </div>
       </header>
