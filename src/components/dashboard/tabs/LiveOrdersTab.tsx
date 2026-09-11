@@ -240,11 +240,11 @@ export const LiveOrdersTab: React.FC = () => {
                     </button>
                   )}
 
-                  {/* Print KOT Button */}
+                  {/* Print Bill & KOT Button */}
                   <button
                     onClick={() => handlePrintKOT(order)}
                     className="p-2 text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition"
-                    title="Print Kitchen Order Ticket (KOT)"
+                    title="Print Dining Bill & KOT Receipt"
                   >
                     <Printer className="w-4 h-4" />
                   </button>
@@ -255,45 +255,144 @@ export const LiveOrdersTab: React.FC = () => {
         </div>
       )}
 
-      {/* Printable KOT (Kitchen Order Ticket) Template for Thermal / Receipt Printer */}
-      {selectedOrderForKOT && (
-        <div id="printable-kot" className="hidden print:block p-4 max-w-xs mx-auto text-black font-mono text-xs">
-          <div className="text-center pb-2 border-b border-dashed border-black">
-            <h2 className="text-base font-black uppercase tracking-wider">{currentRestaurant.name}</h2>
-            <div className="text-sm font-bold mt-1">*** KITCHEN ORDER TICKET (KOT) ***</div>
-            <div className="text-xs mt-1">Order: {selectedOrderForKOT.orderNumber} | Table: {selectedOrderForKOT.tableNumber}</div>
-            <div className="text-[10px] mt-0.5">{new Date().toLocaleString()}</div>
-          </div>
+      {/* Printable Dining Bill & KOT Receipt Template for Thermal / Receipt Printer */}
+      {selectedOrderForKOT && (() => {
+        const itemSubtotal = selectedOrderForKOT.subtotal !== undefined
+          ? selectedOrderForKOT.subtotal
+          : selectedOrderForKOT.items.reduce((sum, it) => sum + (it.totalPrice || 0), 0);
+        const discountAmt = selectedOrderForKOT.discountAmount || 0;
+        const discountedSubtotal = Math.max(0, itemSubtotal - discountAmt);
+        const taxAmt = selectedOrderForKOT.taxAmount !== undefined
+          ? selectedOrderForKOT.taxAmount
+          : Number((discountedSubtotal * 0.05).toFixed(2));
+        const finalTotal = selectedOrderForKOT.totalAmount !== undefined
+          ? selectedOrderForKOT.totalAmount
+          : Number((discountedSubtotal + taxAmt).toFixed(2));
 
-          <div className="py-2 border-b border-dashed border-black space-y-2">
-            {selectedOrderForKOT.items.map((it, idx) => (
-              <div key={idx} className="flex justify-between">
-                <div>
-                  <span className="font-bold text-sm">{it.quantity} x </span>
-                  <span className="font-bold">{it.menuItem.name}</span>
-                  {it.selectedAddOns.map((a) => (
-                    <div key={a.optionId} className="text-[10px] pl-4">- {a.optionName}</div>
-                  ))}
-                  {it.specialInstructions && (
-                    <div className="text-[10px] pl-4 italic">Note: {it.specialInstructions}</div>
-                  )}
-                </div>
+        return (
+          <div id="printable-kot" className="hidden print:block p-4 max-w-xs mx-auto text-black font-mono text-xs">
+            {/* Header */}
+            <div className="text-center pb-2 border-b-2 border-dashed border-black">
+              <h2 className="text-lg font-black uppercase tracking-wider">{currentRestaurant.name}</h2>
+              {currentRestaurant.address && (
+                <div className="text-[10px] text-gray-700 mt-0.5">{currentRestaurant.address}</div>
+              )}
+              {currentRestaurant.phone && (
+                <div className="text-[10px] text-gray-700">Ph: {currentRestaurant.phone}</div>
+              )}
+              <div className="text-xs font-black mt-1.5 uppercase tracking-wide">
+                *** DINING BILL / TAX INVOICE ***
               </div>
-            ))}
-          </div>
-
-          {selectedOrderForKOT.notes && (
-            <div className="py-2 border-b border-dashed border-black">
-              <div className="font-bold uppercase">Customer Note:</div>
-              <div>{selectedOrderForKOT.notes}</div>
+              <div className="text-[11px] font-bold mt-1">
+                Order: {selectedOrderForKOT.orderNumber} | Table: {selectedOrderForKOT.tableNumber}
+              </div>
+              <div className="text-[10px] mt-0.5 text-gray-800">
+                {new Date(selectedOrderForKOT.createdAt || Date.now()).toLocaleString()}
+              </div>
+              <div className="text-[10px] mt-0.5">
+                Diner: <span className="font-bold">{selectedOrderForKOT.customerName || 'Guest'}</span>
+                {selectedOrderForKOT.customerPhone ? ` | Mob: ${selectedOrderForKOT.customerPhone}` : ''}
+              </div>
             </div>
-          )}
 
-          <div className="pt-2 text-center text-[10px]">
-            Server: Self-Order QR | Diner: {selectedOrderForKOT.customerName}
+            {/* Items Column Header */}
+            <div className="py-1 border-b border-dashed border-black flex justify-between text-[11px] font-bold">
+              <span className="flex-1">ITEM (QTY)</span>
+              <span className="w-16 text-right">PRICE</span>
+            </div>
+
+            {/* Menu Items with Individual Prices */}
+            <div className="py-2 border-b-2 border-dashed border-black space-y-2">
+              {selectedOrderForKOT.items.map((it, idx) => (
+                <div key={idx} className="flex justify-between items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-xs leading-snug">
+                      <span>{it.quantity} x </span>
+                      <span>{it.menuItem.name}</span>
+                    </div>
+                    {it.quantity > 1 && (
+                      <div className="text-[10px] text-gray-600 pl-4">
+                        @ ₹{it.unitPrice || Math.round(it.totalPrice / it.quantity)} each
+                      </div>
+                    )}
+                    {it.selectedAddOns && it.selectedAddOns.map((a) => (
+                      <div key={a.optionId} className="text-[10px] pl-4 text-gray-700">
+                        + {a.optionName} {a.price > 0 ? `(₹${a.price})` : ''}
+                      </div>
+                    ))}
+                    {it.specialInstructions && (
+                      <div className="text-[10px] pl-4 italic text-gray-700">
+                        Note: {it.specialInstructions}
+                      </div>
+                    )}
+                  </div>
+                  {/* Item Total Price in Rs */}
+                  <div className="font-black text-xs text-right whitespace-nowrap">
+                    ₹{it.totalPrice}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Bill Breakdown & Total Amount */}
+            <div className="py-2 border-b-2 border-dashed border-black space-y-1 text-xs">
+              <div className="flex justify-between">
+                <span>Items Subtotal:</span>
+                <span className="font-bold">₹{itemSubtotal}</span>
+              </div>
+              {discountAmt > 0 && (
+                <div className="flex justify-between text-gray-800">
+                  <span>Discount ({selectedOrderForKOT.couponCode || 'PROMO'}):</span>
+                  <span className="font-bold">-₹{discountAmt}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span>Restaurant GST (5%):</span>
+                <span>₹{taxAmt}</span>
+              </div>
+              {/* Grand Total Amount */}
+              <div className="flex justify-between text-sm font-black pt-1.5 border-t border-dashed border-black">
+                <span>GRAND TOTAL:</span>
+                <span className="text-base">₹{finalTotal}</span>
+              </div>
+            </div>
+
+            {/* Payment & Order Meta */}
+            <div className="py-2 border-b border-dashed border-black text-[11px] space-y-0.5">
+              <div className="flex justify-between">
+                <span>Payment Mode:</span>
+                <span className="font-bold">
+                  {selectedOrderForKOT.paymentMethod === 'UPI_QR'
+                    ? 'UPI / QR'
+                    : selectedOrderForKOT.paymentMethod === 'CASH'
+                    ? 'Cash'
+                    : 'Card'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Payment Status:</span>
+                <span className="font-bold">
+                  {selectedOrderForKOT.paymentStatus === 'PAID_VIA_UPI' || selectedOrderForKOT.paymentStatus === 'PAID'
+                    ? 'PAID ✓'
+                    : 'UNPAID / PENDING'}
+                </span>
+              </div>
+              {selectedOrderForKOT.notes && (
+                <div className="pt-1 text-[10px]">
+                  <span className="font-bold">Kitchen Note: </span>
+                  <span>{selectedOrderForKOT.notes}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Greeting */}
+            <div className="pt-3 text-center text-[10px] space-y-1">
+              <div className="font-black uppercase tracking-wider">*** THANK YOU! VISIT AGAIN ***</div>
+              <div className="text-gray-600">MenuCard Smart Contactless Dining</div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

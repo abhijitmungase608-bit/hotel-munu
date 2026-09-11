@@ -5,7 +5,7 @@ import QRCode from 'qrcode';
 import { Download, Printer, Plus, Trash2, ExternalLink, Sparkles, X, Users } from 'lucide-react';
 
 export const TableQRTab: React.FC = () => {
-  const { currentRestaurant, tables, addTable, deleteTable, setSelectedTableNumber, setCurrentView } = useApp();
+  const { currentRestaurant, tables, addTable, deleteTable, setSelectedTableNumber, setCurrentView, setIsCustomerDiningMode } = useApp();
 
   const [selectedTable, setSelectedTable] = useState<Table | null>(tables[0] || null);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
@@ -20,7 +20,7 @@ export const TableQRTab: React.FC = () => {
     if (!selectedTable) return;
 
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://menucard.io';
-    const targetUrl = `${origin}/?view=menu&restaurant=${currentRestaurant.slug}&table=${selectedTable.tableNumber}`;
+    const targetUrl = `${origin}/?mode=dining&table=${selectedTable.tableNumber}&restaurant=${currentRestaurant.slug}`;
 
     QRCode.toDataURL(targetUrl, {
       width: 400,
@@ -214,12 +214,13 @@ export const TableQRTab: React.FC = () => {
               <button
                 onClick={() => {
                   setSelectedTableNumber(selectedTable.tableNumber);
+                  setIsCustomerDiningMode(true);
                   setCurrentView('menu');
                 }}
-                className="w-full mt-2.5 py-2 text-xs font-semibold text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition flex items-center justify-center gap-1.5"
+                className="w-full mt-2.5 py-2 text-xs font-semibold text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
-                <span>Test Live Order as Table {selectedTable.tableNumber}</span>
+                <span>Test Customer QR Experience (Table {selectedTable.tableNumber})</span>
               </button>
             </div>
           )}

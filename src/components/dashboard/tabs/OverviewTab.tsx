@@ -3,9 +3,10 @@ import { useApp } from '../../../context/AppContext';
 import { DollarSign, ShoppingBag, Eye, Users, TrendingUp, Sparkles, ArrowUpRight, Clock, Plus, QrCode } from 'lucide-react';
 
 export const OverviewTab: React.FC = () => {
-  const { orders, currentRestaurant, tables, menuItems, setDashboardTab, setCurrentView } = useApp();
+  const { orders, currentRestaurant, tables, menuItems, setDashboardTab, setCurrentView, restaurants } = useApp();
 
   // Calculations
+  const totalGMV = orders.reduce((sum, o) => sum + o.totalAmount, 0);
   const restaurantOrders = orders.filter((o) => o.restaurantId === currentRestaurant.id);
   const totalRevenue = restaurantOrders.reduce((sum, o) => sum + o.totalAmount, 0);
   const activeOrders = restaurantOrders.filter((o) => o.status === 'NEW' || o.status === 'PREPARING');
@@ -29,18 +30,18 @@ export const OverviewTab: React.FC = () => {
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setDashboardTab('orders')}
-            className="px-4 py-2.5 bg-white text-orange-600 hover:bg-orange-50 font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-white text-orange-600 hover:bg-orange-50 font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
           >
             <span>Live Orders</span>
             {activeOrders.length > 0 && (
-              <span className="bg-rose-500 text-white text-[10px] px-1.5 py-0.2 rounded-full">
+              <span className="bg-rose-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">
                 {activeOrders.length}
               </span>
             )}
           </button>
           <button
             onClick={() => setDashboardTab('tables')}
-            className="px-4 py-2.5 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
           >
             <QrCode className="w-4 h-4" />
             <span>Generate QRs</span>
@@ -48,7 +49,62 @@ export const OverviewTab: React.FC = () => {
         </div>
       </div>
 
-      {/* 4 Metric KPI Cards */}
+      {/* 4 Metric KPI Cards (Exact match to User Screenshot) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* TOTAL RESTAURANTS */}
+        <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-md">
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            TOTAL RESTAURANTS
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+            {restaurants.length}
+          </div>
+          <div className="text-xs text-emerald-400 font-bold mt-1">
+            100% Active
+          </div>
+        </div>
+
+        {/* ORDERS PROCESSED */}
+        <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-md">
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            ORDERS PROCESSED
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+            {orders.length}
+          </div>
+          <div className="text-xs text-indigo-400 font-bold mt-1">
+            Contactless Dining
+          </div>
+        </div>
+
+        {/* GROSS ORDER VOLUME */}
+        <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-md">
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            GROSS ORDER VOLUME
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+            ₹{totalGMV.toLocaleString('en-IN')}
+          </div>
+          <div className="text-xs text-emerald-400 font-bold mt-1">
+            ↑ Platform GMV
+          </div>
+        </div>
+
+        {/* SAAS SUBSCRIPTION ARR */}
+        <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-md">
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            SAAS SUBSCRIPTION ARR
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+            ₹8,376
+          </div>
+          <div className="text-xs text-purple-400 font-bold mt-1">
+            Recurring Monthly
+          </div>
+        </div>
+      </div>
+
+      {/* Restaurant Operational Quick Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1: Revenue */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">

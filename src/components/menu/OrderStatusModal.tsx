@@ -31,111 +31,136 @@ export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({
 
   const step = getStatusStep();
 
+  const itemSubtotal = lastPlacedOrder.subtotal !== undefined
+    ? lastPlacedOrder.subtotal
+    : lastPlacedOrder.items.reduce((sum, it) => sum + (it.totalPrice || 0), 0);
+  const discountAmt = lastPlacedOrder.discountAmount || 0;
+  const discountedSubtotal = Math.max(0, itemSubtotal - discountAmt);
+  const taxAmt = lastPlacedOrder.taxAmount !== undefined
+    ? lastPlacedOrder.taxAmount
+    : Number((discountedSubtotal * 0.05).toFixed(2));
+  const finalTotal = lastPlacedOrder.totalAmount !== undefined
+    ? lastPlacedOrder.totalAmount
+    : Number((discountedSubtotal + taxAmt).toFixed(2));
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden text-center">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in no-print">
+        <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden text-center">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
+          >
+            <X className="w-5 h-5" />
+          </button>
 
-        {/* Animation Icon */}
-        <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-tr from-orange-400 to-amber-400 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-orange-500/20">
-          <ChefHat className="w-8 h-8 animate-bounce" />
-        </div>
+          {/* Animation Icon */}
+          <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-tr from-orange-400 to-amber-400 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-orange-500/20">
+            <ChefHat className="w-8 h-8 animate-bounce" />
+          </div>
 
-        <h3 className="text-xl font-black text-slate-900">
-          {step === 1 && 'Order Sent to Kitchen!'}
-          {step === 2 && 'Cooking in Progress 🍳'}
-          {step === 3 && 'Order Served! Enjoy Your Meal 😋'}
-        </h3>
-        <p className="text-xs text-slate-500 mt-1">
-          {lastPlacedOrder.orderNumber} • Table {lastPlacedOrder.tableNumber}
-        </p>
+          <h3 className="text-xl font-black text-slate-900">
+            {step === 1 && 'Order Sent to Kitchen!'}
+            {step === 2 && 'Cooking in Progress 🍳'}
+            {step === 3 && 'Order Served! Enjoy Your Meal 😋'}
+          </h3>
+          <p className="text-xs text-slate-500 mt-1">
+            {lastPlacedOrder.orderNumber} • Table {lastPlacedOrder.tableNumber}
+          </p>
 
-        {/* Live Stepper */}
-        <div className="my-6 py-4 px-2 bg-slate-50 rounded-2xl border border-slate-100">
-          <div className="flex items-center justify-between relative px-4">
-            {/* Step 1 */}
-            <div className="flex flex-col items-center z-10">
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition ${
-                  step >= 1
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-slate-200 text-slate-600'
-                }`}
-              >
-                ✓
+          {/* Live Stepper */}
+          <div className="my-6 py-4 px-2 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="flex items-center justify-between relative px-4">
+              {/* Step 1 */}
+              <div className="flex flex-col items-center z-10">
+                <div
+                  className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition ${
+                    step >= 1
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-slate-200 text-slate-600'
+                  }`}
+                >
+                  ✓
+                </div>
+                <span className="text-[10px] font-bold text-slate-800 mt-1.5">Received</span>
               </div>
-              <span className="text-[10px] font-bold text-slate-800 mt-1.5">Received</span>
-            </div>
 
-            {/* Step 2 */}
-            <div className="flex flex-col items-center z-10">
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition ${
-                  step >= 2
-                    ? 'bg-orange-500 text-white ring-4 ring-orange-100'
-                    : 'bg-slate-200 text-slate-400'
-                }`}
-              >
-                {step >= 2 ? '🍳' : '2'}
+              {/* Step 2 */}
+              <div className="flex flex-col items-center z-10">
+                <div
+                  className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition ${
+                    step >= 2
+                      ? 'bg-orange-500 text-white ring-4 ring-orange-100'
+                      : 'bg-slate-200 text-slate-400'
+                  }`}
+                >
+                  {step >= 2 ? '🍳' : '2'}
+                </div>
+                <span className="text-[10px] font-bold text-slate-800 mt-1.5">Preparing</span>
               </div>
-              <span className="text-[10px] font-bold text-slate-800 mt-1.5">Preparing</span>
-            </div>
 
-            {/* Step 3 */}
-            <div className="flex flex-col items-center z-10">
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition ${
-                  step >= 3
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-200 text-slate-400'
-                }`}
-              >
-                {step >= 3 ? '🎉' : '3'}
+              {/* Step 3 */}
+              <div className="flex flex-col items-center z-10">
+                <div
+                  className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition ${
+                    step >= 3
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-slate-200 text-slate-400'
+                  }`}
+                >
+                  {step >= 3 ? '🎉' : '3'}
+                </div>
+                <span className="text-[10px] font-bold text-slate-800 mt-1.5">Served</span>
               </div>
-              <span className="text-[10px] font-bold text-slate-800 mt-1.5">Served</span>
-            </div>
 
-            {/* Connecting Bar */}
-            <div className="absolute top-4 left-8 right-8 h-1 bg-slate-200 -z-0">
-              <div
-                className="h-full bg-gradient-to-r from-emerald-500 to-orange-500 transition-all duration-500"
-                style={{
-                  width: step === 1 ? '30%' : step === 2 ? '75%' : '100%',
-                }}
-              ></div>
+              {/* Connecting Bar */}
+              <div className="absolute top-4 left-8 right-8 h-1 bg-slate-200 -z-0">
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-500 to-orange-500 transition-all duration-500"
+                  style={{
+                    width: step === 1 ? '30%' : step === 2 ? '75%' : '100%',
+                  }}
+                ></div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Ordered items summary */}
-        <div className="text-left bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-xs space-y-2 mb-5 max-h-40 overflow-y-auto">
-          <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-            Order Items
-          </div>
-          {lastPlacedOrder.items.map((it) => (
-            <div key={it.cartItemId} className="flex justify-between items-center text-slate-700">
-              <span>{it.quantity}x {it.menuItem.name}</span>
-              <span className="font-semibold text-slate-900">₹{it.totalPrice}</span>
+          {/* Ordered items summary */}
+          <div className="text-left bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-xs space-y-2 mb-4 max-h-44 overflow-y-auto">
+            <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+              Order Items & Pricing
             </div>
-          ))}
-          <div className="pt-2 border-t border-slate-200 flex justify-between font-bold text-slate-900">
-            <span>Total Paid / Payable</span>
-            <span className="text-orange-600">₹{lastPlacedOrder.totalAmount}</span>
+            {lastPlacedOrder.items.map((it) => (
+              <div key={it.cartItemId} className="flex justify-between items-start text-slate-700">
+                <div>
+                  <span className="font-bold">{it.quantity}x </span>
+                  <span>{it.menuItem.name}</span>
+                  {it.quantity > 1 && (
+                    <span className="text-[10px] text-slate-500 block">
+                      (@ ₹{it.unitPrice || Math.round(it.totalPrice / it.quantity)} each)
+                    </span>
+                  )}
+                </div>
+                <span className="font-black text-slate-900">₹{it.totalPrice}</span>
+              </div>
+            ))}
+            <div className="pt-2 border-t border-slate-200 flex justify-between font-bold text-slate-900 text-sm">
+              <span>Grand Total</span>
+              <span className="text-orange-600 font-black">₹{finalTotal}</span>
+            </div>
+          </div>
+
+          {/* Action button */}
+          <div className="pt-2">
+            <button
+              onClick={onClose}
+              className="w-full py-3 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer"
+            >
+              Add More Items to Order
+            </button>
           </div>
         </div>
-
-        <button
-          onClick={onClose}
-          className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition"
-        >
-          Add More Items to Order
-        </button>
       </div>
-    </div>
+    </>
   );
 };

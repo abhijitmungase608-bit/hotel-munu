@@ -31,8 +31,10 @@ interface ToastMessage {
 
 interface AppContextType {
   // Navigation & Routing State
-  currentView: 'landing' | 'menu' | 'dashboard' | 'admin';
-  setCurrentView: (view: 'landing' | 'menu' | 'dashboard' | 'admin') => void;
+  currentView: 'login' | 'dashboard' | 'menu' | 'admin' | 'landing';
+  setCurrentView: (view: 'login' | 'dashboard' | 'menu' | 'admin' | 'landing') => void;
+  isCustomerDiningMode: boolean;
+  setIsCustomerDiningMode: (val: boolean) => void;
   activeRestaurantSlug: string;
   setActiveRestaurantSlug: (slug: string) => void;
   selectedTableNumber: string;
@@ -114,15 +116,67 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 const SYNC_CHANNEL_NAME = 'menucard_realtime_sync';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Check if opened from table QR scan or dining mode
+  const [isCustomerDiningMode, setIsCustomerDiningMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode');
+    const table = params.get('table');
+    const isStaff = params.has('staff') || params.has('demo');
+    if (isStaff) return false;
+    return mode === 'dining' || mode === 'customer' || Boolean(table);
+  });
+
   // Navigation
-  const [currentView, setCurrentView] = useState<'landing' | 'menu' | 'dashboard' | 'admin'>('landing');
-  const [activeRestaurantSlug, setActiveRestaurantSlug] = useState<string>('hotel-munu');
-  const [selectedTableNumber, setSelectedTableNumber] = useState<string>('4');
+  const [currentView, setCurrentView] = useState<'login' | 'dashboard' | 'menu' | 'admin' | 'landing'>(() => {
+    if (typeof window === 'undefined') return 'login';
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode');
+    const table = params.get('table');
+    const view = params.get('view');
+    const isStaff = params.has('staff') || params.has('demo');
+    if (!isStaff && (mode === 'dining' || mode === 'customer' || Boolean(table) || view === 'menu')) {
+      return 'menu';
+    }
+    if (view === 'dashboard' || view === 'admin' || view === 'login') return view;
+    const savedUser = localStorage.getItem('munu_v4_user');
+    if (savedUser) return 'dashboard';
+    return 'login';
+  });
+
+  const [activeRestaurantSlug, setActiveRestaurantSlug] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'hotel-munu';
+    const params = new URLSearchParams(window.location.search);
+    return params.get('restaurant') || 'hotel-munu';
+  });
+
+  const [selectedTableNumber, setSelectedTableNumber] = useState<string>(() => {
+    if (typeof window === 'undefined') return '4';
+    const params = new URLSearchParams(window.location.search);
+    return params.get('table') || '4';
+  });
+
   const [dashboardTab, setDashboardTab] = useState<string>('orders');
   const [adminTab, setAdminTab] = useState<string>('restaurants');
 
-  // Auth
-  const [currentUser, setCurrentUser] = useState<User | null>(demoUsers[0]);
+  // Auth: Customer from QR is unauthenticated guest; staff is loaded from localStorage or demo param
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    const isCustomer = params.get('mode') === 'dining' || params.get('mode') === 'customer' || params.has('table');
+    const isStaff = params.has('staff') || params.has('demo');
+    if (isCustomer && !isStaff) return null; // Guest customer
+    const saved = localStorage.getItem('munu_v4_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        // ignore parse error
+      }
+    }
+    if (isStaff) return demoUsers[0];
+    return null;
+  });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Toasts
@@ -206,17 +260,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const handleUrlState = () => {
       const params = new URLSearchParams(window.location.search);
+      const modeParam = params.get('mode');
       const tableParam = params.get('table');
+      const viewParam = params.get('view');
+      const slugParam = params.get('restaurant');
+      const isStaff = params.has('staff') || params.has('demo');
+
       if (tableParam) {
         setSelectedTableNumber(tableParam);
       }
-      const viewParam = params.get('view');
-      if (viewParam === 'menu' || viewParam === 'dashboard' || viewParam === 'admin') {
-        setCurrentView(viewParam);
-      }
-      const slugParam = params.get('restaurant');
       if (slugParam) {
         setActiveRestaurantSlug(slugParam);
+      }
+
+      if (!isStaff && (modeParam === 'dining' || modeParam === 'customer' || Boolean(tableParam))) {
+        setIsCustomerDiningMode(true);
+        setCurrentView('menu');
+      } else if (viewParam === 'menu' || viewParam === 'dashboard' || viewParam === 'admin' || viewParam === 'login') {
+        setCurrentView(viewParam);
       }
     };
     handleUrlState();
@@ -276,13 +337,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Auth methods
   const loginAs = (role: 'OWNER' | 'ADMIN', restaurantId = 'rest-1') => {
+    setIsCustomerDiningMode(false);
     if (role === 'ADMIN') {
-      setCurrentUser(demoUsers[1]);
+      const adminUser = demoUsers[1];
+      setCurrentUser(adminUser);
+      localStorage.setItem('munu_v4_user', JSON.stringify(adminUser));
       setCurrentView('admin');
       showToast('Admin Logged In', 'Welcome to Super Admin Console', 'success');
     } else {
       const user = { ...demoUsers[0], restaurantId };
       setCurrentUser(user);
+      localStorage.setItem('munu_v4_user', JSON.stringify(user));
       const rest = restaurants.find((r) => r.id === restaurantId);
       if (rest) setActiveRestaurantSlug(rest.slug);
       setCurrentView('dashboard');
@@ -292,8 +357,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logout = () => {
+    localStorage.removeItem('munu_v4_user');
     setCurrentUser(null);
-    setCurrentView('landing');
+    setCurrentView('login');
     showToast('Logged Out', 'You have been signed out successfully', 'info');
   };
 
@@ -656,6 +722,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         currentView,
         setCurrentView,
+        isCustomerDiningMode,
+        setIsCustomerDiningMode,
         activeRestaurantSlug,
         setActiveRestaurantSlug,
         selectedTableNumber,
