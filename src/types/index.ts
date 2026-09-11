@@ -120,6 +120,20 @@ export interface RestaurantBranding {
   compactMenu: boolean;
 }
 
+export interface SubscriptionDetails {
+  planName: string;
+  isTrial: boolean;
+  trialDaysTotal: number;
+  trialDaysRemaining: number;
+  trialStartDate: string;
+  trialEndDate: string;
+  isExpired: boolean;
+  expiresAt: string;
+  lastPaymentUtr?: string;
+  paidAmount?: number;
+  paymentUpiId: string;
+}
+
 export interface Restaurant {
   id: string;
   slug: string;
@@ -138,7 +152,13 @@ export interface Restaurant {
   rating: number;
   totalReviews: number;
   branding: RestaurantBranding;
-  subscriptionPlan: 'FREE' | 'STARTER' | 'BUSINESS';
+  subscriptionPlan: 'FREE' | 'STARTER' | 'BUSINESS' | 'FREE_TRIAL' | 'ANNUAL_PRO';
+  subscriptionDetails?: SubscriptionDetails;
+  galleryImages?: string[];
+  foodClassification?: 'VEG_ONLY' | 'VEG_AND_NONVEG' | 'JAIN_FRIENDLY' | 'HALAL';
+  fssaiNumber?: string;
+  gstRatePercent?: number;
+  googleMapsUrl?: string;
 }
 
 export interface User {

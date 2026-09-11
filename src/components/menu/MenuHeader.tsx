@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Star, Clock, MapPin, Phone, Info, ChevronRight, Utensils, X, Check } from 'lucide-react';
 
 export const MenuHeader: React.FC = () => {
-  const { currentRestaurant, selectedTableNumber, setSelectedTableNumber, tables } = useApp();
+  const { currentRestaurant, selectedTableNumber, setSelectedTableNumber, tables, isCustomerDiningMode } = useApp();
   const [showTableModal, setShowTableModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -21,14 +21,25 @@ export const MenuHeader: React.FC = () => {
 
           {/* Table Badge on Cover */}
           <div className="absolute top-4 right-4 z-10">
-            <button
-              onClick={() => setShowTableModal(true)}
-              className="bg-white/95 backdrop-blur-md hover:bg-white text-slate-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 border border-white/50 transition hover:scale-105"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Table {selectedTableNumber}</span>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            </button>
+            {isCustomerDiningMode ? (
+              <div
+                className="bg-white/95 backdrop-blur-md text-slate-900 text-xs font-black px-3.5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 border border-white/50"
+                title={`You are dining at Table ${selectedTableNumber}`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Table {selectedTableNumber}</span>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowTableModal(true)}
+                className="bg-white/95 backdrop-blur-md hover:bg-white text-slate-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 border border-white/50 transition hover:scale-105 cursor-pointer"
+                title="Change Table Number (Demo / Staff)"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Table {selectedTableNumber}</span>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+            )}
           </div>
 
           {/* Open Status Tag */}
@@ -41,7 +52,7 @@ export const MenuHeader: React.FC = () => {
       )}
 
       {/* Restaurant Info Card */}
-      <div className="max-w-3xl mx-auto px-4 pt-3 pb-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-4">
         <div className="flex items-start gap-4">
           {/* Logo */}
           <div className="relative -mt-10 sm:-mt-12 shrink-0">
@@ -160,6 +171,25 @@ export const MenuHeader: React.FC = () => {
             <p className="text-xs text-slate-600 leading-relaxed mb-4">
               {currentRestaurant.description}
             </p>
+
+            {/* Ambience Gallery Photos */}
+            {currentRestaurant.galleryImages && currentRestaurant.galleryImages.length > 0 && (
+              <div className="mb-4">
+                <div className="text-[10px] font-black text-slate-700 uppercase tracking-wider mb-2">
+                  Hotel Ambience & Dining Space
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {currentRestaurant.galleryImages.slice(0, 3).map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img}
+                      alt="Hotel Ambience"
+                      className="h-16 w-full rounded-xl object-cover border border-slate-200 shadow-xs"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-3 text-xs text-slate-700">
               <div className="flex items-start gap-2.5">

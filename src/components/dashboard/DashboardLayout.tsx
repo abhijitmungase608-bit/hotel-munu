@@ -36,6 +36,8 @@ export const DashboardLayout: React.FC = () => {
     setCurrentView,
     restaurants,
     setActiveRestaurantSlug,
+    setSelectedTableNumber,
+    setIsCustomerDiningMode,
   } = useApp();
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -209,17 +211,21 @@ export const DashboardLayout: React.FC = () => {
         <div className="p-4 border-t border-slate-800 space-y-2">
           {/* Quick link to preview live menu */}
           <button
-            onClick={() => setCurrentView('menu')}
-            className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition"
+            onClick={() => {
+              setSelectedTableNumber('1');
+              setIsCustomerDiningMode(true);
+              setCurrentView('menu');
+            }}
+            className="w-full py-2.5 px-3 bg-slate-800/90 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition cursor-pointer border border-slate-700/60 shadow-sm"
           >
-            <ExternalLink className="w-3.5 h-3.5 text-orange-400" />
+            <ExternalLink className="w-4 h-4 text-orange-400" />
             <span>Open Customer Menu</span>
           </button>
 
           {/* Logout */}
           <button
             onClick={logout}
-            className="w-full py-2 px-3 text-slate-400 hover:text-rose-400 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition hover:bg-slate-800/40"
+            className="w-full py-2 px-3 text-slate-400 hover:text-rose-400 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition hover:bg-slate-800/40 cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>
@@ -239,9 +245,32 @@ export const DashboardLayout: React.FC = () => {
             />
             <div>
               <h2 className="font-extrabold text-sm text-slate-900">{currentRestaurant.name}</h2>
-              <p className="text-[11px] text-slate-500">
-                Plan: <span className="font-bold text-orange-600">{currentRestaurant.subscriptionPlan}</span> • {currentRestaurant.address.split(',')[1] || currentRestaurant.address}
-              </p>
+              <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                {currentRestaurant.subscriptionDetails?.isTrial && !currentRestaurant.subscriptionDetails?.isExpired ? (
+                  <button
+                    type="button"
+                    onClick={() => setDashboardTab('subscription')}
+                    className="inline-flex items-center gap-1 text-orange-600 hover:underline font-bold cursor-pointer"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+                    <span>15-Day Free Trial ({currentRestaurant.subscriptionDetails?.trialDaysRemaining ?? 12} Days Left)</span>
+                  </button>
+                ) : currentRestaurant.subscriptionDetails?.isExpired ? (
+                  <button
+                    type="button"
+                    onClick={() => setDashboardTab('subscription')}
+                    className="inline-flex items-center gap-1 text-rose-600 hover:underline font-bold cursor-pointer bg-rose-50 px-2 py-0.5 rounded-md"
+                  >
+                    <span>⚠️ Trial Expired — Renew with UPI</span>
+                  </button>
+                ) : (
+                  <span className="font-bold text-emerald-600">
+                    Plan: {currentRestaurant.subscriptionPlan} (Active ✓)
+                  </span>
+                )}
+                <span>•</span>
+                <span>{currentRestaurant.address.split(',')[1] || currentRestaurant.address}</span>
+              </div>
             </div>
           </div>
 

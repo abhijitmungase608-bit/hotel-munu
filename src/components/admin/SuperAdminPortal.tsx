@@ -22,11 +22,11 @@ export const SuperAdminPortal: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setCurrentView('landing')}
-          className="self-start sm:self-auto px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition"
+          onClick={() => setCurrentView('dashboard')}
+          className="self-start sm:self-auto px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Exit to Public Website</span>
+          <span>Back to Restaurant Dashboard</span>
         </button>
       </div>
 

@@ -151,10 +151,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-end p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-end p-0 sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden relative">
+        {/* Mobile Drag Pill */}
+        <div className="sm:hidden absolute top-2 left-1/2 -translate-x-1/2 z-20 w-12 h-1 bg-slate-400/60 rounded-full"></div>
+
         {/* Header */}
-        <div className="p-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+        <div className="pt-5 pb-4 px-4 sm:p-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-lg">🛒</span>
@@ -409,12 +412,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
         {/* Action Buttons Footer */}
         {cart.length > 0 && (
-          <div className="p-3 bg-slate-50 border-t border-slate-200 shrink-0 space-y-2">
+          <div className="p-4 pb-8 sm:pb-4 bg-slate-50 border-t border-slate-200 shrink-0 space-y-2.5">
             {/* Direct Table Order to Kitchen */}
             <button
               type="button"
               onClick={handleDirectOrder}
-              className="w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-500/25 flex items-center justify-between transition active:scale-98"
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-500/25 flex items-center justify-between transition active:scale-98 cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <Send className="w-4 h-4" />
@@ -427,7 +430,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             <button
               type="button"
               onClick={handleWhatsAppOrder}
-              className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition"
+              className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition cursor-pointer"
             >
               <MessageSquare className="w-4 h-4" />
               <span>Order via WhatsApp</span>

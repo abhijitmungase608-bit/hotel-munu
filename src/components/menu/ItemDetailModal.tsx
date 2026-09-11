@@ -93,8 +93,10 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden relative">
+        {/* Mobile App Drag Handle */}
+        <div className="sm:hidden absolute top-2 left-1/2 -translate-x-1/2 z-20 w-12 h-1.5 bg-white/70 rounded-full shadow"></div>
         {/* Modal Image Header */}
         <div className="relative h-52 sm:h-60 w-full bg-slate-900 shrink-0">
           <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
@@ -214,7 +216,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 bg-slate-50 border-t border-slate-100 shrink-0 flex items-center justify-between gap-3">
+        <div className="p-4 pb-6 sm:pb-4 bg-slate-50 border-t border-slate-100 shrink-0 flex items-center justify-between gap-3">
           {/* Quantity stepper */}
           <div className="flex items-center gap-3 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm">
             <button
