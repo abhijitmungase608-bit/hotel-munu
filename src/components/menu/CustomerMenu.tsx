@@ -6,9 +6,8 @@ import { FoodCard } from './FoodCard';
 import { ItemDetailModal } from './ItemDetailModal';
 import { CartDrawer } from './CartDrawer';
 import { OrderStatusModal } from './OrderStatusModal';
-import { DesktopCartSidebar } from './DesktopCartSidebar';
-import { MenuItem, VegType } from '../../types';
-import { Search, Sparkles, ShoppingBag, ArrowRight, Filter, Flame } from 'lucide-react';
+import type { MenuItem } from '../../types';
+import { Search, X, ShoppingBag, ArrowRight, Sparkles, ChefHat } from 'lucide-react';
 
 export const CustomerMenu: React.FC = () => {
   const {
@@ -20,8 +19,6 @@ export const CustomerMenu: React.FC = () => {
     isCartDrawerOpen,
     setIsCartDrawerOpen,
     lastPlacedOrder,
-    setIsAuthModalOpen,
-    isCustomerDiningMode,
     selectedTableNumber,
   } = useApp();
 
@@ -34,15 +31,12 @@ export const CustomerMenu: React.FC = () => {
   // Filter items based on restaurant, category, search, and veg/non-veg filter
   const filteredItems = useMemo(() => {
     return menuItems.filter((item) => {
-      // Must belong to current restaurant
       if (item.restaurantId !== currentRestaurant.id) return false;
 
-      // Category filter
       if (selectedCategoryId !== 'ALL' && item.categoryId !== selectedCategoryId) {
         return false;
       }
 
-      // Veg / Non-veg filter
       if (vegFilter === 'VEG' && item.vegType !== 'veg' && item.vegType !== 'vegan') {
         return false;
       }
@@ -50,7 +44,6 @@ export const CustomerMenu: React.FC = () => {
         return false;
       }
 
-      // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchName = item.name.toLowerCase().includes(q);
@@ -62,257 +55,182 @@ export const CustomerMenu: React.FC = () => {
     });
   }, [menuItems, currentRestaurant.id, selectedCategoryId, vegFilter, searchQuery]);
 
-  // Group items by category if "ALL" is selected and no search
-  const showGrouped = selectedCategoryId === 'ALL' && !searchQuery.trim() && vegFilter === 'ALL';
-
   const cartTotalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartSubtotal = cart.reduce((sum, item) => sum + item.totalPrice, 0);
 
+  const restaurantCategories = categories.filter((c) => c.restaurantId === currentRestaurant.id);
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-28 md:pb-12">
-      {/* Restaurant Header */}
-      <MenuHeader />
+    <div className="min-h-screen bg-slate-100 flex justify-center selection:bg-orange-500 selection:text-white">
+      {/* Mobile App Shell Container (max-w-md on desktop with app shadow, 100% on phone) */}
+      <div className="w-full max-w-md bg-white min-h-screen shadow-2xl flex flex-col relative pb-28">
+        {/* Native App Restaurant Header */}
+        <MenuHeader
+          vegOnly={vegFilter === 'VEG'}
+          onToggleVegOnly={() => setVegFilter((prev) => (prev === 'VEG' ? 'ALL' : 'VEG'))}
+        />
 
-      {/* Main Responsive Layout: 1 Column on Mobile, 2 Columns on Laptop/Desktop */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* ========================================================================= */}
-          {/* LEFT / MAIN COLUMN: Search, Filters, Categories & Dishes                  */}
-          {/* ========================================================================= */}
-          <div className="lg:col-span-7 xl:col-span-8 space-y-4">
-            {/* Search & Filter Bar */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                {/* Search Input */}
-                <div className="relative flex-1">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search dishes, drinks, desserts..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-xs"
-                  />
-                </div>
-
-                {/* Veg / Non-Veg Quick Pills */}
-                <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-xs shrink-0">
-                  <button
-                    onClick={() => setVegFilter(vegFilter === 'VEG' ? 'ALL' : 'VEG')}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                      vegFilter === 'VEG'
-                        ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 border border-white"></span>
-                    <span>Veg</span>
-                  </button>
-                  <button
-                    onClick={() => setVegFilter(vegFilter === 'NON_VEG' ? 'ALL' : 'NON_VEG')}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                      vegFilter === 'NON_VEG'
-                        ? 'bg-rose-600 text-white shadow-xs'
-                        : 'text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    <span className="w-2 h-2 rounded-full bg-rose-500 border border-white"></span>
-                    <span>Non-Veg</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Promo Bar Banner */}
-              <div className="p-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl shadow-md flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">🔥</span>
-                  <div>
-                    <span className="font-bold">Today's Special:</span> 20% OFF on dining bills! Use code{' '}
-                    <span className="font-black bg-white/20 px-1.5 py-0.5 rounded tracking-wider">
-                      MUNU20
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Category Pills Navigation */}
-            <div>
-              <CategoryTabs
-                categories={categories.filter((c) => c.restaurantId === currentRestaurant.id)}
-                selectedCategoryId={selectedCategoryId}
-                onSelectCategory={(id) => {
-                  setSelectedCategoryId(id);
-                  setSearchQuery('');
-                }}
+        {/* Search Bar & Veg Filter Pills */}
+        <div className="px-4 py-2.5 bg-white border-b border-slate-100 space-y-2 sticky top-12 z-20">
+          <div className="flex items-center gap-2">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search food... 🔍"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-8 py-2 bg-slate-100/90 text-slate-900 border-none rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/30"
               />
-            </div>
-
-            {/* Food Items List */}
-            <main className="space-y-6 pt-2">
-              {showGrouped ? (
-                // Grouped by categories
-                categories
-                  .filter((c) => c.restaurantId === currentRestaurant.id)
-                  .map((category) => {
-                    const itemsInCat = menuItems.filter(
-                      (item) =>
-                        item.restaurantId === currentRestaurant.id && item.categoryId === category.id
-                    );
-                    if (itemsInCat.length === 0) return null;
-
-                    return (
-                      <section key={category.id} className="space-y-3">
-                        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                          <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-                            <span>{category.icon}</span>
-                            <span>{category.name}</span>
-                            <span className="text-xs font-semibold text-slate-400">
-                              ({itemsInCat.length})
-                            </span>
-                          </h2>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                          {itemsInCat.map((item) => (
-                            <FoodCard
-                              key={item.id}
-                              item={item}
-                              onOpenDetails={(it) => setSelectedItemForModal(it)}
-                            />
-                          ))}
-                        </div>
-                      </section>
-                    );
-                  })
-              ) : (
-                // Filtered list
-                <div className="space-y-3">
-                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Showing {filteredItems.length} {filteredItems.length === 1 ? 'Dish' : 'Dishes'}
-                  </div>
-
-                  {filteredItems.length === 0 ? (
-                    <div className="bg-white rounded-2xl p-10 text-center border border-slate-200">
-                      <div className="text-4xl mb-2">🔍</div>
-                      <h3 className="font-bold text-slate-800 text-sm">No dishes found</h3>
-                      <p className="text-xs text-slate-500 mt-1">Try searching for something else or clearing filters</p>
-                      <button
-                        onClick={() => {
-                          setSearchQuery('');
-                          setVegFilter('ALL');
-                          setSelectedCategoryId('ALL');
-                        }}
-                        className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold hover:bg-orange-600 transition cursor-pointer"
-                      >
-                        Clear Filters
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      {filteredItems.map((item) => (
-                        <FoodCard
-                          key={item.id}
-                          item={item}
-                          onOpenDetails={(it) => setSelectedItemForModal(it)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
               )}
-            </main>
-          </div>
+            </div>
 
-          {/* ========================================================================= */}
-          {/* RIGHT COLUMN: Persistent Sticky Order & Cart Panel on Desktop / Laptop     */}
-          {/* ========================================================================= */}
-          <div className="hidden lg:block lg:col-span-5 xl:col-span-4">
-            <DesktopCartSidebar onOpenOrderTracker={() => setIsOrderTrackerOpen(true)} />
+            {/* Veg / Non-Veg Quick Toggle Pills */}
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => setVegFilter(vegFilter === 'VEG' ? 'ALL' : 'VEG')}
+                className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition flex items-center gap-1 border ${
+                  vegFilter === 'VEG'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-500 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+                <span>Veg</span>
+              </button>
+
+              <button
+                onClick={() => setVegFilter(vegFilter === 'NON_VEG' ? 'ALL' : 'NON_VEG')}
+                className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition flex items-center gap-1 border ${
+                  vegFilter === 'NON_VEG'
+                    ? 'bg-rose-50 text-rose-800 border-rose-500 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-rose-600"></span>
+                <span>Non-Veg</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ========================================================================= */}
-      {/* MOBILE ONLY: Floating Bottom Cart Bar (App-like thumb action)             */}
-      {/* ========================================================================= */}
-      {cart.length > 0 && (
-        <aside aria-label="Mobile cart toolbar" className="lg:hidden fixed bottom-4 left-0 right-0 z-30 px-4 max-w-md mx-auto no-print">
-          <div
-            onClick={() => setIsCartDrawerOpen(true)}
-            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-2xl p-3.5 shadow-2xl flex items-center justify-between cursor-pointer transform hover:scale-[1.02] active:scale-[0.98] transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center font-black text-base shadow-inner">
-                {cartTotalItems}
-              </div>
-              <div>
-                <div className="text-xs font-medium text-orange-100 uppercase tracking-wider">
-                  {cartTotalItems} {cartTotalItems === 1 ? 'Item' : 'Items'} Added
+        {/* Sticky Category Tabs Bar */}
+        <CategoryTabs
+          categories={restaurantCategories}
+          selectedCategoryId={selectedCategoryId}
+          onSelectCategory={(id) => {
+            setSelectedCategoryId(id);
+            setSearchQuery('');
+          }}
+        />
+
+        {/* Promo Code Banner */}
+        <div className="mx-4 mt-3 p-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl shadow-xs flex items-center justify-between text-[11px]">
+          <div className="flex items-center gap-1.5">
+            <span>🔥</span>
+            <span>
+              Flat 20% OFF on dining bills! Code: <strong className="bg-white/20 px-1 py-0.2 rounded font-mono">MUNU20</strong>
+            </span>
+          </div>
+        </div>
+
+        {/* Food Items List */}
+        <main className="flex-1 mt-2">
+          {filteredItems.length === 0 ? (
+            <div className="py-16 text-center px-4">
+              <div className="text-4xl mb-2">🍽️</div>
+              <h4 className="font-extrabold text-sm text-slate-800">No dishes match your filter</h4>
+              <p className="text-xs text-slate-500 mt-1">Try clearing the search or veg filter</p>
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setVegFilter('ALL');
+                  setSelectedCategoryId('ALL');
+                }}
+                className="mt-3 px-4 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold"
+              >
+                Reset Filters
+              </button>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {filteredItems.map((item) => (
+                <FoodCard
+                  key={item.id}
+                  item={item}
+                  onOpenDetails={(it) => setSelectedItemForModal(it)}
+                />
+              ))}
+            </div>
+          )}
+        </main>
+
+        {/* Floating Native App Cart Bottom Bar */}
+        {cart.length > 0 && (
+          <div className="fixed bottom-14 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-30 no-print animate-in slide-in-from-bottom-3">
+            <div
+              onClick={() => setIsCartDrawerOpen(true)}
+              className="bg-slate-950 text-white rounded-2xl p-3 shadow-2xl border border-slate-800 flex items-center justify-between cursor-pointer active:scale-98 transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center font-black text-sm shadow">
+                  {cartTotalItems}
                 </div>
-                <div className="text-lg font-black tracking-tight">₹{cartSubtotal}</div>
+                <div>
+                  <div className="text-[10px] uppercase font-bold text-orange-400">
+                    Table {selectedTableNumber} • {cartTotalItems} {cartTotalItems === 1 ? 'Item' : 'Items'}
+                  </div>
+                  <div className="text-base font-black tracking-tight">₹{cartSubtotal}</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 bg-white text-slate-950 font-black text-xs px-4 py-2 rounded-xl shadow-xs">
+                <span>VIEW ORDER</span>
+                <ArrowRight className="w-3.5 h-3.5 text-orange-500" />
               </div>
             </div>
-
-            <div className="flex items-center gap-2 font-bold text-sm bg-white text-orange-600 px-4 py-2 rounded-xl shadow">
-              <span>View Order</span>
-              <ArrowRight className="w-4 h-4" />
-            </div>
           </div>
-        </aside>
-      )}
+        )}
 
-      {/* Floating Track Order Button if customer has an active order */}
-      {lastPlacedOrder && cart.length === 0 && (
-        <div className="fixed bottom-4 right-4 z-30 no-print">
-          <button
-            onClick={() => setIsOrderTrackerOpen(true)}
-            className="bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 border border-slate-700 hover:bg-black transition text-xs font-bold cursor-pointer"
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            <span>Track Order #{lastPlacedOrder.orderNumber}</span>
-          </button>
-        </div>
-      )}
+        {/* Floating Active Order Tracker Badge */}
+        {lastPlacedOrder && cart.length === 0 && (
+          <div className="fixed bottom-16 right-4 z-30 no-print">
+            <button
+              onClick={() => setIsOrderTrackerOpen(true)}
+              className="bg-emerald-700 text-white px-3.5 py-2 rounded-full shadow-2xl flex items-center gap-2 border border-emerald-500 text-xs font-bold transition active:scale-95"
+            >
+              <ChefHat className="w-3.5 h-3.5 animate-bounce" />
+              <span>Track Order {lastPlacedOrder.orderNumber}</span>
+            </button>
+          </div>
+        )}
 
-      {/* Restaurant Dining Footer */}
-      <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 pb-16 border-t border-slate-200 text-center text-xs text-slate-500 space-y-2 no-print">
-        <div className="flex items-center justify-center gap-2">
-          <img src={currentRestaurant.branding.logo} alt="" className="w-5 h-5 rounded-md object-cover" />
-          <span className="font-bold text-slate-800">{currentRestaurant.name}</span>
-          <span>•</span>
-          <span>Smart Dining Menu</span>
-        </div>
-        <p className="text-[11px] text-slate-400">
-          Table {selectedTableNumber} • Order sent directly to chef's kitchen
-        </p>
-        <div className="pt-2">
-          <button
-            onClick={() => setIsAuthModalOpen(true)}
-            className="text-[10px] font-semibold text-slate-400 hover:text-orange-600 transition underline underline-offset-2 cursor-pointer"
-          >
-            Restaurant Staff Login
-          </button>
-        </div>
-      </footer>
+        {/* Modals */}
+        <ItemDetailModal
+          item={selectedItemForModal}
+          onClose={() => setSelectedItemForModal(null)}
+          onAddToCart={addToCart}
+        />
 
-      {/* Modals & Bottom Sheets */}
-      <ItemDetailModal
-        item={selectedItemForModal}
-        onClose={() => setSelectedItemForModal(null)}
-        onAddToCart={addToCart}
-      />
+        <CartDrawer
+          isOpen={isCartDrawerOpen}
+          onClose={() => setIsCartDrawerOpen(false)}
+          onOpenOrderTracker={() => setIsOrderTrackerOpen(true)}
+        />
 
-      <CartDrawer
-        isOpen={isCartDrawerOpen}
-        onClose={() => setIsCartDrawerOpen(false)}
-        onOpenOrderTracker={() => setIsOrderTrackerOpen(true)}
-      />
-
-      <OrderStatusModal
-        isOpen={isOrderTrackerOpen}
-        onClose={() => setIsOrderTrackerOpen(false)}
-      />
+        <OrderStatusModal
+          isOpen={isOrderTrackerOpen}
+          onClose={() => setIsOrderTrackerOpen(false)}
+        />
+      </div>
     </div>
   );
 };
