@@ -167,4 +167,8 @@ export interface User {
   email: string;
   role: 'OWNER' | 'ADMIN' | 'STAFF';
   restaurantId?: string;
+  avatar?: string;
+  phone?: string;
+  authProvider?: 'password' | 'google' | 'quick';
 }
+
