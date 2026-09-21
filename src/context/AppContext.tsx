@@ -21,6 +21,7 @@ import {
   demoUsers,
 } from '../data/mockData';
 import { playNewOrderSound } from '../utils/sound';
+import confetti from 'canvas-confetti';
 
 interface ToastMessage {
   id: string;
@@ -31,8 +32,8 @@ interface ToastMessage {
 
 interface AppContextType {
   // Navigation & Routing State
-  currentView: 'login' | 'dashboard' | 'menu' | 'admin' | 'landing';
-  setCurrentView: (view: 'login' | 'dashboard' | 'menu' | 'admin' | 'landing') => void;
+  currentView: 'login' | 'register' | 'dashboard' | 'menu' | 'admin' | 'landing';
+  setCurrentView: (view: 'login' | 'register' | 'dashboard' | 'menu' | 'admin' | 'landing') => void;
   isCustomerDiningMode: boolean;
   setIsCustomerDiningMode: (val: boolean) => void;
   activeRestaurantSlug: string;
@@ -47,6 +48,26 @@ interface AppContextType {
   // Authentication
   currentUser: User | null;
   loginAs: (role: 'OWNER' | 'ADMIN', restaurantId?: string) => void;
+  loginWithGoogle: (googleUser: {
+    name: string;
+    email: string;
+    avatar?: string;
+    restaurantName?: string;
+  }) => void;
+  loginWithCredentials: (
+    emailOrPhone: string,
+    password?: string,
+    restaurantId?: string
+  ) => boolean;
+  registerRestaurantAndOwner: (data: {
+    restaurantName: string;
+    ownerName: string;
+    email: string;
+    phone: string;
+    password?: string;
+    cuisine?: string;
+    authProvider?: 'password' | 'google';
+  }) => Restaurant;
   logout: () => void;
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
@@ -128,7 +149,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   // Navigation
-  const [currentView, setCurrentView] = useState<'login' | 'dashboard' | 'menu' | 'admin' | 'landing'>(() => {
+  const [currentView, setCurrentView] = useState<'login' | 'register' | 'dashboard' | 'menu' | 'admin' | 'landing'>(() => {
     if (typeof window === 'undefined') return 'login';
     const params = new URLSearchParams(window.location.search);
     const mode = params.get('mode');
@@ -138,7 +159,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!isStaff && (mode === 'dining' || mode === 'customer' || Boolean(table) || view === 'menu')) {
       return 'menu';
     }
-    if (view === 'dashboard' || view === 'admin' || view === 'login') return view;
+    if (view === 'dashboard' || view === 'admin' || view === 'login' || view === 'register') return view;
     const savedUser = localStorage.getItem('munu_v4_user');
     if (savedUser) return 'dashboard';
     return 'login';
@@ -336,6 +357,257 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     restaurants.find((r) => r.slug === activeRestaurantSlug) || restaurants[0];
 
   // Auth methods
+  const registerRestaurantAndOwner = (data: {
+    restaurantName: string;
+    ownerName: string;
+    email: string;
+    phone: string;
+    password?: string;
+    cuisine?: string;
+    authProvider?: 'password' | 'google';
+  }): Restaurant => {
+    setIsCustomerDiningMode(false);
+    const cleanName = data.restaurantName.trim() || 'My Hotel';
+    const slugBase = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const uniqueSlug = `${slugBase || 'hotel'}-${Math.random().toString(36).substring(2, 6)}`;
+    const newRestId = `rest-${Date.now()}`;
+    const cleanPhone = data.phone.trim();
+
+    const cuisineList = data.cuisine
+      ? [data.cuisine, 'Fast Food', 'Beverages']
+      : ['North Indian', 'Tandoor', 'Chinese'];
+
+    const newRestaurant: Restaurant = {
+      id: newRestId,
+      slug: uniqueSlug,
+      name: cleanName,
+      tagline: 'Authentic Taste • Fast Table Ordering',
+      description: `Welcome to ${cleanName}! We serve fresh, hygienic, and delicious food prepared with premium ingredients.`,
+      cuisineTypes: cuisineList,
+      address: 'Shop No. 1, Main Market Road, City Center',
+      phone: cleanPhone || '+91 98765 43210',
+      whatsappNumber: cleanPhone.replace(/\D/g, '') || '919876543210',
+      upiId: `${slugBase || 'hotel'}@upi`,
+      openingTime: '10:00 AM',
+      closingTime: '11:00 PM',
+      isOpen: true,
+      currency: '₹',
+      rating: 5.0,
+      totalReviews: 1,
+      branding: {
+        theme: 'amber',
+        primaryColor: '#f97316',
+        fontFamily: 'Plus Jakarta Sans',
+        logo: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=80',
+        coverImage: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80',
+        showCoverPhoto: true,
+        compactMenu: false,
+      },
+      subscriptionPlan: 'FREE_TRIAL',
+      subscriptionDetails: {
+        planName: '15-Day Free Trial',
+        isTrial: true,
+        trialDaysTotal: 15,
+        trialDaysRemaining: 15,
+        trialStartDate: new Date().toISOString(),
+        trialEndDate: new Date(Date.now() + 15 * 86400000).toISOString(),
+        isExpired: false,
+        expiresAt: new Date(Date.now() + 15 * 86400000).toISOString(),
+        paymentUpiId: '8010947110@ybl',
+      },
+      foodClassification: 'VEG_AND_NONVEG',
+      gstRatePercent: 5,
+    };
+
+    // 1. Create default categories for this new restaurant
+    const newCategories: Category[] = [
+      { id: `cat-${newRestId}-starters`, restaurantId: newRestId, name: 'Starters & Snacks', icon: '🍢', order: 1 },
+      { id: `cat-${newRestId}-main`, restaurantId: newRestId, name: 'Main Course Specialties', icon: '🍛', order: 2 },
+      { id: `cat-${newRestId}-breads`, restaurantId: newRestId, name: 'Tandoori Breads & Roti', icon: '🫓', order: 3 },
+      { id: `cat-${newRestId}-rice`, restaurantId: newRestId, name: 'Biryani & Rice', icon: '🍚', order: 4 },
+      { id: `cat-${newRestId}-drinks`, restaurantId: newRestId, name: 'Cold Beverages & Shakes', icon: '🥤', order: 5 },
+      { id: `cat-${newRestId}-desserts`, restaurantId: newRestId, name: 'Desserts & Sweets', icon: '🍰', order: 6 },
+    ];
+
+    // 2. Create default menu items cloned for this restaurant
+    const newMenuItems: MenuItem[] = initialMenuItems.slice(0, 10).map((item, idx) => {
+      let catId = newCategories[0].id;
+      if (idx >= 2 && idx < 5) catId = newCategories[1].id;
+      else if (idx >= 5 && idx < 7) catId = newCategories[2].id;
+      else if (idx >= 7 && idx < 8) catId = newCategories[3].id;
+      else if (idx >= 8) catId = newCategories[4].id;
+
+      return {
+        ...item,
+        id: `item-${newRestId}-${idx + 1}`,
+        restaurantId: newRestId,
+        categoryId: catId,
+      };
+    });
+
+    // 3. Create default tables 1-8
+    const newTables: Table[] = Array.from({ length: 8 }, (_, i) => ({
+      id: `tbl-${newRestId}-${i + 1}`,
+      restaurantId: newRestId,
+      tableNumber: String(i + 1),
+      capacity: i < 4 ? 4 : 6,
+      area: i < 4 ? 'Main Hall' : 'VIP Lounge',
+      status: 'available',
+    }));
+
+    // 4. Create default coupon
+    const newCoupons: Coupon[] = [
+      {
+        id: `cpn-${newRestId}-welcome`,
+        restaurantId: newRestId,
+        code: 'WELCOME50',
+        description: '50% off on your first dine-in order',
+        discountType: 'PERCENT',
+        discountValue: 50,
+        minOrderValue: 200,
+        maxDiscount: 100,
+        isActive: true,
+        expiryDate: new Date(Date.now() + 60 * 86400000).toISOString(),
+      },
+    ];
+
+    // Update state
+    setRestaurants((prev) => [newRestaurant, ...prev]);
+    setCategories((prev) => [...newCategories, ...prev]);
+    setMenuItems((prev) => [...newMenuItems, ...prev]);
+    setTables((prev) => [...newTables, ...prev]);
+    setCoupons((prev) => [...newCoupons, ...prev]);
+
+    // Create User session
+    const newUser: User = {
+      id: `usr-${Date.now()}`,
+      name: data.ownerName.trim() || 'Hotel Owner',
+      email: data.email.trim().toLowerCase(),
+      phone: cleanPhone,
+      role: 'OWNER',
+      restaurantId: newRestId,
+      authProvider: data.authProvider || 'password',
+    };
+
+    setCurrentUser(newUser);
+    localStorage.setItem('munu_v4_user', JSON.stringify(newUser));
+    setActiveRestaurantSlug(uniqueSlug);
+    setCurrentView('dashboard');
+    setIsAuthModalOpen(false);
+
+    // Trigger celebration confetti
+    try {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+    } catch (e) {
+      // ignore
+    }
+
+    showToast(
+      '🎉 Restaurant Registered Successfully!',
+      `Welcome ${newUser.name}! Your smart menu for ${cleanName} is live and ready.`,
+      'success'
+    );
+
+    return newRestaurant;
+  };
+
+  const loginWithGoogle = (googleUser: {
+    name: string;
+    email: string;
+    avatar?: string;
+    restaurantName?: string;
+  }) => {
+    setIsCustomerDiningMode(false);
+    const emailNorm = googleUser.email.trim().toLowerCase();
+
+    if (googleUser.restaurantName) {
+      registerRestaurantAndOwner({
+        restaurantName: googleUser.restaurantName,
+        ownerName: googleUser.name,
+        email: googleUser.email,
+        phone: '+91 98765 00000',
+        authProvider: 'google',
+      });
+      return;
+    }
+
+    const matchedRest = restaurants[0];
+    const user: User = {
+      id: `usr-google-${Date.now()}`,
+      name: googleUser.name || 'Google User',
+      email: emailNorm,
+      role: 'OWNER',
+      restaurantId: matchedRest?.id || 'rest-1',
+      avatar: googleUser.avatar,
+      authProvider: 'google',
+    };
+
+    setCurrentUser(user);
+    localStorage.setItem('munu_v4_user', JSON.stringify(user));
+    if (matchedRest) setActiveRestaurantSlug(matchedRest.slug);
+    setCurrentView('dashboard');
+    setIsAuthModalOpen(false);
+
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.6 },
+      });
+    } catch (e) {}
+
+    showToast(
+      'Signed in with Google',
+      `Welcome ${user.name}! Accessing ${matchedRest?.name || 'Hotel Munu'} dashboard.`,
+      'success'
+    );
+  };
+
+  const loginWithCredentials = (
+    emailOrPhone: string,
+    _password?: string,
+    restaurantId?: string
+  ): boolean => {
+    setIsCustomerDiningMode(false);
+    const targetRestId = restaurantId || restaurants[0]?.id || 'rest-1';
+    const rest = restaurants.find((r) => r.id === targetRestId) || restaurants[0];
+
+    if (emailOrPhone.toLowerCase().includes('admin')) {
+      const adminUser = demoUsers[1];
+      setCurrentUser(adminUser);
+      localStorage.setItem('munu_v4_user', JSON.stringify(adminUser));
+      setCurrentView('admin');
+      showToast('Admin Logged In', 'Welcome to Super Admin Console', 'success');
+      return true;
+    }
+
+    const user: User = {
+      id: `usr-${Date.now()}`,
+      name: rest?.name ? `${rest.name} Owner` : 'Hotel Owner',
+      email: emailOrPhone.includes('@') ? emailOrPhone : `${emailOrPhone}@hotelmunu.com`,
+      role: 'OWNER',
+      restaurantId: rest.id,
+      authProvider: 'password',
+    };
+
+    setCurrentUser(user);
+    localStorage.setItem('munu_v4_user', JSON.stringify(user));
+    if (rest) setActiveRestaurantSlug(rest.slug);
+    setCurrentView('dashboard');
+    setIsAuthModalOpen(false);
+
+    showToast(
+      'Login Successful',
+      `Welcome back to ${rest.name}! Live Orders & POS ready.`,
+      'success'
+    );
+    return true;
+  };
+
   const loginAs = (role: 'OWNER' | 'ADMIN', restaurantId = 'rest-1') => {
     setIsCustomerDiningMode(false);
     if (role === 'ADMIN') {
@@ -362,6 +634,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentView('login');
     showToast('Logged Out', 'You have been signed out successfully', 'info');
   };
+
 
   // Cart operations
   const addToCart = (
@@ -734,6 +1007,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setAdminTab,
         currentUser,
         loginAs,
+        loginWithGoogle,
+        loginWithCredentials,
+        registerRestaurantAndOwner,
         logout,
         isAuthModalOpen,
         setIsAuthModalOpen,

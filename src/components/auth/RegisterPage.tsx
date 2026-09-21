@@ -1,46 +1,47 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { GoogleAuthModal } from './GoogleAuthModal';
-import { ForgotPasswordModal } from './ForgotPasswordModal';
-import { ChefHat, Eye, EyeOff, Sparkles, ArrowRight, Shield, Utensils } from 'lucide-react';
+import { ChefHat, Eye, EyeOff, Sparkles, ArrowRight } from 'lucide-react';
 
-export const LoginPage: React.FC = () => {
-  const { loginWithCredentials, loginAs, setCurrentView, showToast } = useApp();
+export const RegisterPage: React.FC = () => {
+  const { registerRestaurantAndOwner, setCurrentView, showToast } = useApp();
 
-  const [email, setEmail] = useState('owner@hotelmunu.com');
-  const [password, setPassword] = useState('123456');
+  const [name, setName] = useState('');
+  const [restaurantName, setRestaurantName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
-  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) {
-      showToast('Email Required', 'Please enter your email or username', 'error');
+    if (!name.trim()) {
+      showToast('Name Required', 'Please enter your name', 'error');
       return;
     }
-    setIsLoading(true);
-    setTimeout(() => {
-      loginWithCredentials(email, password);
-      setIsLoading(false);
-    }, 300);
-  };
+    if (!email.trim()) {
+      showToast('Email Required', 'Please enter your email', 'error');
+      return;
+    }
+    if (password.length < 4) {
+      showToast('Password Too Short', 'Password must be at least 4 characters', 'warning');
+      return;
+    }
 
-  const handleQuickOwner = () => {
     setIsLoading(true);
     setTimeout(() => {
-      loginAs('OWNER', 'rest-1');
+      registerRestaurantAndOwner({
+        restaurantName: restaurantName.trim() || `${name}'s Restaurant`,
+        ownerName: name.trim(),
+        email: email.trim(),
+        phone: phone.trim() || '+91 98765 43210',
+        password,
+        authProvider: 'password',
+      });
       setIsLoading(false);
-    }, 250);
-  };
-
-  const handleQuickAdmin = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      loginAs('ADMIN');
-      setIsLoading(false);
-    }, 250);
+    }, 400);
   };
 
   return (
@@ -77,20 +78,20 @@ export const LoginPage: React.FC = () => {
           {/* Hero Slogan */}
           <div className="my-auto py-4 md:py-12">
             <h2 className="text-2xl sm:text-3xl font-light text-white tracking-wide drop-shadow-md">
-              Welcome back to
+              Let's go to a
             </h2>
             <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight drop-shadow-md mt-0.5">
-              your journey
+              new journey
             </h3>
             <p className="text-xs text-white/70 mt-2 max-w-xs drop-shadow hidden md:block">
-              Access your live kitchen display, contactless table orders, and thermal billing.
+              Modern contactless dining, instant QR ordering & real-time kitchen POS.
             </p>
           </div>
 
-          {/* Bottom quick status */}
+          {/* Bottom subtle badge */}
           <div className="hidden md:flex items-center gap-2 text-[11px] text-white/60">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Live POS & Kitchen KDS Online</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>15-Day Free Trial Included</span>
           </div>
         </div>
 
@@ -124,10 +125,10 @@ export const LoginPage: React.FC = () => {
           {/* Form Content on White Canvas */}
           <div className="relative z-10 p-6 sm:p-10 md:pl-14 text-slate-800 max-w-md w-full mx-auto">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-5">
-              Log In
+              Sign Up
             </h1>
 
-            {/* Google Fast Sign In */}
+            {/* Google Fast Sign Up */}
             <button
               type="button"
               onClick={() => setIsGoogleModalOpen(true)}
@@ -151,38 +152,46 @@ export const LoginPage: React.FC = () => {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                 />
               </svg>
-              <span>Continue with Google</span>
+              <span>Sign Up with Google</span>
             </button>
 
-            {/* Quick Demo Access Bar */}
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              <button
-                type="button"
-                onClick={handleQuickOwner}
-                className="py-1.5 px-2 bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
-              >
-                <Utensils className="w-3 h-3 text-orange-600" />
-                <span>Demo Owner</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleQuickAdmin}
-                className="py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
-              >
-                <Shield className="w-3 h-3 text-indigo-600" />
-                <span>Super Admin</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Email / Username Field */}
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              {/* Name Field */}
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 block mb-0.5">
-                  Email / Username
+                  Name
                 </label>
                 <input
                   type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Abhijit Mungase"
+                  className="w-full border-b border-slate-300 focus:border-slate-900 pb-1.5 text-xs font-medium text-slate-800 focus:outline-none transition placeholder:text-slate-300 bg-transparent"
+                />
+              </div>
+
+              {/* Restaurant / Hotel Name Field */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 block mb-0.5">
+                  Restaurant / Hotel Name
+                </label>
+                <input
+                  type="text"
+                  value={restaurantName}
+                  onChange={(e) => setRestaurantName(e.target.value)}
+                  placeholder="Hotel Munu / Royal Spice"
+                  className="w-full border-b border-slate-300 focus:border-slate-900 pb-1.5 text-xs font-medium text-slate-800 focus:outline-none transition placeholder:text-slate-300 bg-transparent"
+                />
+              </div>
+
+              {/* Email Field */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 block mb-0.5">
+                  Email
+                </label>
+                <input
+                  type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -191,20 +200,25 @@ export const LoginPage: React.FC = () => {
                 />
               </div>
 
+              {/* Phone Field */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 block mb-0.5">
+                  Phone (+91)
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="9876543210"
+                  className="w-full border-b border-slate-300 focus:border-slate-900 pb-1.5 text-xs font-medium text-slate-800 focus:outline-none transition placeholder:text-slate-300 bg-transparent"
+                />
+              </div>
+
               {/* Password Field */}
               <div>
-                <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-semibold text-slate-400 block mb-0.5">
-                    Password
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setIsForgotModalOpen(true)}
-                    className="text-[10px] text-amber-600 hover:underline font-semibold cursor-pointer"
-                  >
-                    Forgot?
-                  </button>
-                </div>
+                <label className="text-[11px] font-semibold text-slate-400 block mb-0.5">
+                  Password
+                </label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -232,25 +246,25 @@ export const LoginPage: React.FC = () => {
                   className="w-full py-2.5 bg-[#141e33] hover:bg-[#1f2e4d] text-white font-bold text-xs rounded-full shadow-lg transition active:scale-95 cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
-                    <span>Logging in...</span>
+                    <span>Creating Account...</span>
                   ) : (
                     <>
-                      <span>Log In</span>
+                      <span>Sign Up</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </>
                   )}
                 </button>
               </div>
 
-              {/* Bottom Switch to Register Link */}
+              {/* Bottom Switch to Login Link */}
               <div className="text-center pt-2 text-xs text-slate-500">
-                Don't have an account?{' '}
+                Already have an account?{' '}
                 <button
                   type="button"
-                  onClick={() => setCurrentView('register')}
+                  onClick={() => setCurrentView('login')}
                   className="text-amber-500 hover:text-amber-600 font-bold transition cursor-pointer underline"
                 >
-                  Sign Up
+                  Log in
                 </button>
               </div>
             </form>
@@ -262,13 +276,7 @@ export const LoginPage: React.FC = () => {
       <GoogleAuthModal
         isOpen={isGoogleModalOpen}
         onClose={() => setIsGoogleModalOpen(false)}
-        isRegisterMode={false}
-      />
-
-      {/* Forgot Password Modal */}
-      <ForgotPasswordModal
-        isOpen={isForgotModalOpen}
-        onClose={() => setIsForgotModalOpen(false)}
+        isRegisterMode={true}
       />
     </div>
   );
