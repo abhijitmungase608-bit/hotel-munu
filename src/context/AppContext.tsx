@@ -802,6 +802,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setLastPlacedOrder(newOrder);
     clearCart();
 
+    // Play order sound alert immediately
+    playNewOrderSound();
+
     // Broadcast across tabs
     if (typeof BroadcastChannel !== 'undefined') {
       try {
